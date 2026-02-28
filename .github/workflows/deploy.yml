@@ -36,19 +36,25 @@ jobs:
           ssh-keyscan -H 47.129.98.137 >> ~/.ssh/known_hosts
           
           ssh -i ~/.ssh/key.pem ubuntu@47.129.98.137 "
-            # Login ulang di server agar tidak masalah permission pull
+            # 1. Login Docker di dalam AWS
             echo '${{ secrets.DOCKER_PASSWORD }}' | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin &&
             
-            # Tarik image terbaru
+            # 2. Tarik image terbaru
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
             
-            # Matikan container lama
+            # 3. SAPU BERSIH PORT 80
+            # Hentikan Apache/Nginx bawaan AWS jika ada
+            sudo systemctl stop apache2 || true &&
+            sudo systemctl stop nginx || true &&
+            
+            # Hentikan container lama
             sudo docker stop portfolio-app || true &&
-            sudo docker rm portfolio-app || true &&
+            sudo docker rm -f portfolio-app || true &&
             
-            # PAKSA matikan siapapun yang pakai port 80 (Solusi Error 125)
-            sudo fuser -k 80/tcp || true &&
-            
-            # Jalankan container baru
-            sudo docker run -d --name portfolio-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
+            # 4. JALANKAN CONTAINER BARU
+            sudo docker run -d \
+              --name portfolio-app \
+              --restart always \
+              -p 80:80 \
+              ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
           "
