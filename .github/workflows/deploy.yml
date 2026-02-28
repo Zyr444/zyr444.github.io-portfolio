@@ -35,9 +35,10 @@ jobs:
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H 47.129.98.137 >> ~/.ssh/known_hosts
           
+          # Perintah dengan SUDO agar tidak Permission Denied
           ssh -i ~/.ssh/key.pem ubuntu@47.129.98.137 "
-            docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
-            docker stop portfolio-app || true &&
-            docker rm portfolio-app || true &&
-            docker run -d --name portfolio-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
+            sudo docker stop portfolio-app || true &&
+            sudo docker rm portfolio-app || true &&
+            sudo docker run -d --name portfolio-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
           "
