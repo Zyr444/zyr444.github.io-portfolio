@@ -36,25 +36,8 @@ jobs:
           ssh-keyscan -H 47.129.98.137 >> ~/.ssh/known_hosts
           
           ssh -i ~/.ssh/key.pem ubuntu@47.129.98.137 "
-            # 1. Login Docker di dalam AWS
-            echo '${{ secrets.DOCKER_PASSWORD }}' | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin &&
-            
-            # 2. Tarik image terbaru
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
-            
-            # 3. SAPU BERSIH PORT 80
-            # Hentikan Apache/Nginx bawaan AWS jika ada
-            sudo systemctl stop apache2 || true &&
-            sudo systemctl stop nginx || true &&
-            
-            # Hentikan container lama
-            sudo docker stop portfolio-app || true &&
-            sudo docker rm -f portfolio-app || true &&
-            
-            # 4. JALANKAN CONTAINER BARU
-            sudo docker run -d \
-              --name portfolio-app \
-              --restart always \
-              -p 80:80 \
-              ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
+            docker stop portfolio-app || true &&
+            docker rm portfolio-app || true &&
+            docker run -d --name portfolio-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
           "
