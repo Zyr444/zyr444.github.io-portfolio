@@ -35,9 +35,25 @@ jobs:
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H 47.129.98.137 >> ~/.ssh/known_hosts
           
+          # Bagian yang SANGAT PENTING (Wajib ada SUDO)
           ssh -i ~/.ssh/key.pem ubuntu@47.129.98.137 "
-            docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
-            docker stop portfolio-app || true &&
-            docker rm portfolio-app || true &&
-            docker run -d --name portfolio-app -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
+            # Login dulu di server biar gak error pull (pakai sudo)
+            echo '${{ secrets.DOCKER_PASSWORD }}' | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin &&
+            
+            # Tarik image terbaru (pakai sudo)
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
+            
+            # Matikan portfolio lama & staging (pakai sudo)
+            sudo docker stop portfolio-app || true &&
+            sudo docker rm -f portfolio-app || true &&
+            
+            # Usir aplikasi staging atau apapun yang pakai port 80
+            sudo fuser -k 80/tcp || true &&
+            
+            # Jalankan container baru di port 80 (pakai sudo)
+            sudo docker run -d \
+              --name portfolio-app \
+              --restart always \
+              -p 80:80 \
+              ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
           "
