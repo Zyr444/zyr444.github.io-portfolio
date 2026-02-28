@@ -2,7 +2,7 @@ name: CI/CD Portfolio Auto-Deploy
 
 on:
   push:
-    branches: [ "main" ] # Robot jalan tiap kali kamu push ke branch main
+    branches: [ "main" ]
 
 jobs:
   build-and-push:
@@ -19,7 +19,6 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          # Membungkus kodingan portfolio kamu jadi image
           docker build -t ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest
 
@@ -36,7 +35,6 @@ jobs:
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H 47.129.98.137 >> ~/.ssh/known_hosts
           
-          # Perintah otomatis di dalam server AWS kamu
           ssh -i ~/.ssh/key.pem ubuntu@47.129.98.137 "
             docker pull ${{ secrets.DOCKER_USERNAME }}/my-portfolio:latest &&
             docker stop portfolio-app || true &&
